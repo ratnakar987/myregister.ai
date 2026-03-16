@@ -1,0 +1,77 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // ===============================================================
+    // Assumed Data Model
+    // ===============================================================
+    //
+    // Collection: institutions
+    // Fields: institutionId, name, adminName, email, phone, createdAt
+    //
+    // Collection: students
+    // Fields: studentId, institutionId, name, dob, gender, class, section, rollNumber, fatherName, motherName, phone, address, classTeacher, admissionDate, monthlyFee, createdAt
+    //
+    // Collection: payments
+    // Fields: paymentId, studentId, institutionId, amount, paymentDate, paymentMethod, receiptNumber, notes
+    //
+    // ===============================================================
+
+    // Helper Functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(institutionId) {
+      return isAuthenticated() && request.auth.uid == institutionId;
+    }
+
+    function isValidInstitution(data) {
+      return data.keys().hasAll(['institutionId', 'name', 'email']) &&
+             data.institutionId is string &&
+             data.name is string && data.name.size() > 0 && data.name.size() < 200 &&
+             data.email is string && data.email.matches("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$");
+    }
+
+    function isValidStudent(data) {
+      return data.keys().hasAll(['studentId', 'institutionId', 'name', 'class', 'monthlyFee']) &&
+             data.studentId is string &&
+             data.institutionId == request.auth.uid &&
+             data.name is string && data.name.size() > 0 && data.name.size() < 100 &&
+             data.class is string &&
+             data.monthlyFee is number && data.monthlyFee >= 0;
+    }
+
+    function isValidPayment(data) {
+      return data.keys().hasAll(['paymentId', 'studentId', 'institutionId', 'amount', 'paymentDate', 'receiptNumber']) &&
+             data.paymentId is string &&
+             data.institutionId == request.auth.uid &&
+             data.amount is number && data.amount > 0 &&
+             data.paymentDate is string;
+    }
+
+    // Rules
+    match /institutions/{institutionId} {
+      allow read: if isOwner(institutionId);
+      allow create: if isOwner(institutionId) && isValidInstitution(request.resource.data);
+      allow update: if isOwner(institutionId) && isValidInstitution(request.resource.data);
+    }
+
+    match /students/{studentId} {
+      allow read: if isAuthenticated() && resource.data.institutionId == request.auth.uid;
+      allow create: if isAuthenticated() && isValidStudent(request.resource.data);
+      allow update: if isAuthenticated() && resource.data.institutionId == request.auth.uid && isValidStudent(request.resource.data);
+      allow delete: if isAuthenticated() && resource.data.institutionId == request.auth.uid;
+    }
+
+    match /payments/{paymentId} {
+      allow read: if isAuthenticated() && resource.data.institutionId == request.auth.uid;
+      allow create: if isAuthenticated() && isValidPayment(request.resource.data);
+      allow update: if isAuthenticated() && resource.data.institutionId == request.auth.uid && isValidPayment(request.resource.data);
+      allow delete: if isAuthenticated() && resource.data.institutionId == request.auth.uid;
+    }
+    
+    match /test/connection {
+      allow read: if true;
+    }
+  }
+}

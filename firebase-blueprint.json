@@ -1,0 +1,72 @@
+{
+  "entities": {
+    "Institution": {
+      "title": "Institution",
+      "description": "A coaching institute or school registered on the platform.",
+      "type": "object",
+      "properties": {
+        "institutionId": { "type": "string", "description": "Unique ID of the institution (matches Auth UID)." },
+        "name": { "type": "string", "description": "Name of the institution." },
+        "adminName": { "type": "string", "description": "Name of the administrator." },
+        "email": { "type": "string", "format": "email", "description": "Contact email." },
+        "phone": { "type": "string", "description": "Contact phone number." },
+        "createdAt": { "type": "string", "format": "date-time", "description": "Registration timestamp." }
+      },
+      "required": ["institutionId", "name", "email"]
+    },
+    "Student": {
+      "title": "Student",
+      "description": "A student enrolled in an institution.",
+      "type": "object",
+      "properties": {
+        "studentId": { "type": "string", "description": "Unique ID of the student." },
+        "institutionId": { "type": "string", "description": "ID of the institution the student belongs to." },
+        "name": { "type": "string", "description": "Full name of the student." },
+        "dob": { "type": "string", "format": "date", "description": "Date of birth." },
+        "gender": { "type": "string", "enum": ["Male", "Female", "Other"] },
+        "class": { "type": "string", "description": "Class or grade level." },
+        "section": { "type": "string", "description": "Section or group." },
+        "rollNumber": { "type": "string", "description": "Roll number." },
+        "fatherName": { "type": "string", "description": "Father's name." },
+        "motherName": { "type": "string", "description": "Mother's name." },
+        "phone": { "type": "string", "description": "Parent's phone number." },
+        "address": { "type": "string", "description": "Residential address." },
+        "classTeacher": { "type": "string", "description": "Assigned class teacher." },
+        "admissionDate": { "type": "string", "format": "date", "description": "Date of admission." },
+        "monthlyFee": { "type": "number", "description": "Monthly fee amount." },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["studentId", "institutionId", "name", "class", "monthlyFee"]
+    },
+    "Payment": {
+      "title": "Payment",
+      "description": "A fee payment record for a student.",
+      "type": "object",
+      "properties": {
+        "paymentId": { "type": "string", "description": "Unique ID of the payment." },
+        "studentId": { "type": "string", "description": "ID of the student who made the payment." },
+        "institutionId": { "type": "string", "description": "ID of the institution." },
+        "amount": { "type": "number", "description": "Amount paid." },
+        "paymentDate": { "type": "string", "format": "date-time", "description": "Date and time of payment." },
+        "paymentMethod": { "type": "string", "description": "Method of payment (Cash, Online, etc.)." },
+        "receiptNumber": { "type": "string", "description": "Unique receipt number." },
+        "notes": { "type": "string", "description": "Optional notes." }
+      },
+      "required": ["paymentId", "studentId", "institutionId", "amount", "paymentDate", "receiptNumber"]
+    }
+  },
+  "firestore": {
+    "/institutions/{institutionId}": {
+      "schema": "Institution",
+      "description": "Stores institution profile information."
+    },
+    "/students/{studentId}": {
+      "schema": "Student",
+      "description": "Stores student records."
+    },
+    "/payments/{paymentId}": {
+      "schema": "Payment",
+      "description": "Stores fee payment records."
+    }
+  }
+}
